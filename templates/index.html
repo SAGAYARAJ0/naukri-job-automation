@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naukri Job Automation - Intelligent Job Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .search-card h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .filter-section {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .filter-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .search-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .stat {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .stat:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            color: #667eea;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .stat-subtitle {
+            color: #bbb;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .jobs-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .jobs-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .job-item {
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            background: #f8f9ff;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .job-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .job-title {
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .job-company {
+            color: #667eea;
+            font-size: 0.95em;
+            margin-bottom: 5px;
+        }
+
+        .job-meta {
+            display: flex;
+            gap: 15px;
+            color: #888;
+            font-size: 0.85em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .no-jobs {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
+        .no-jobs svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .main-section {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            font-size: 0.8em;
+            color: #666;
+            margin-right: 5px;
+        }
+
+        .badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💼 Naukri Job Automation</h1>
+            <p>Intelligent Job Search & Application System</p>
+        </header>
+
+        <div class="main-section">
+            <!-- Search Form -->
+            <div class="search-card">
+                <h2>🔍 Search Jobs</h2>
+                <form id="searchForm">
+                    <div class="form-group">
+                        <label for="keywords">Job Title / Skills</label>
+                        <input 
+                            type="text" 
+                            id="keywords" 
+                            name="keywords" 
+                            placeholder="e.g., Java Developer, Spring Boot, Python"
+                            value="Java Developer, Spring Boot"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="experience">Experience (Years)</label>
+                            <select id="experience" name="experience">
+                                <option value="0">Fresher</option>
+                                <option value="1">1 Year</option>
+                                <option value="2">2 Years</option>
+                                <option value="3" selected>3 Years</option>
+                                <option value="5">5 Years</option>
+                                <option value="7">7 Years</option>
+                                <option value="10">10+ Years</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="location">Location</label>
+                            <input 
+                                type="text" 
+                                id="location" 
+                                name="location" 
+                                placeholder="e.g., Bangalore, Delhi, Mumbai"
+                                value="Bangalore"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="filter-section">
+                        <h3>📅 Posted Within</h3>
+                        <div class="filter-options">
+                            <button type="button" class="filter-btn active" data-freshness="1">Last 1 day</button>
+                            <button type="button" class="filter-btn" data-freshness="3">Last 3 days</button>
+                            <button type="button" class="filter-btn" data-freshness="7">Last 7 days</button>
+                            <button type="button" class="filter-btn" data-freshness="15">Last 15 days</button>
+                            <button type="button" class="filter-btn" data-freshness="30">Last 30 days</button>
+                        </div>
+                        <input type="hidden" id="freshness" name="freshness" value="1">
+                    </div>
+
+                    <button type="submit" class="search-button" id="searchBtn">
+                        🚀 Search & Apply
+                    </button>
+                </form>
+
+                <div id="message" style="margin-top: 15px;"></div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-card">
+                <h2>📊 Statistics</h2>
+                
+                <div class="stat">
+                    <div class="stat-label">Total Applications</div>
+                    <div class="stat-value" id="totalApps">0</div>
+                    <div class="stat-subtitle">Jobs applied to</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-value" id="successRate">0%</div>
+                    <div class="stat-subtitle">Successful applications</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-label">System Status</div>
+                    <div class="stat-value" id="systemStatus">✓ Ready</div>
+                    <div class="stat-subtitle" id="statusDetails">Credentials configured</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Jobs -->
+        <div class="jobs-section">
+            <h2>📝 Recent Applications</h2>
+            <div id="jobsList"></div>
+        </div>
+    </div>
+
+    <script>
+        const FRESHNESS_MAP = {
+            '1': '1 day',
+            '3': '3 days',
+            '7': '7 days',
+            '15': '15 days',
+            '30': '30 days'
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadJobs();
+            setupEventListeners();
+            checkHealth();
+        });
+
+        function setupEventListeners() {
+            // Freshness filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById('freshness').value = btn.dataset.freshness;
+                });
+            });
+
+            // Search form
+            document.getElementById('searchForm').addEventListener('submit', handleSearch);
+        }
+
+        async function handleSearch(e) {
+            e.preventDefault();
+
+            const keywords = document.getElementById('keywords').value;
+            const experience = document.getElementById('experience').value;
+            const location = document.getElementById('location').value;
+            const freshness = document.getElementById('freshness').value;
+
+            if (!keywords.trim()) {
+                showMessage('Please enter job title or skills', 'error');
+                return;
+            }
+
+            const searchBtn = document.getElementById('searchBtn');
+            searchBtn.disabled = true;
+            searchBtn.textContent = '⏳ Searching...';
+
+            try {
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        keywords,
+                        experience,
+                        location,
+                        freshness
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('✓ Search completed! Reload to see results.', 'success');
+                    setTimeout(() => {
+                        loadJobs();
+                        loadStats();
+                    }, 1000);
+                } else {
+                    showMessage('✗ ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('✗ Error: ' + error.message, 'error');
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = '🚀 Search & Apply';
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('totalApps').textContent = data.total_applications;
+                    document.getElementById('successRate').textContent = 
+                        (data.success_rate || 0).toFixed(1) + '%';
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function loadJobs() {
+            try {
+                const response = await fetch('/api/jobs');
+                const data = await response.json();
+
+                const jobsList = document.getElementById('jobsList');
+
+                if (!data.success || !data.jobs || data.jobs.length === 0) {
+                    jobsList.innerHTML = `
+                        <div class="no-jobs">
+                            <p>📭 No applications yet</p>
+                            <p style="font-size: 0.9em; color: #aaa; margin-top: 10px;">
+                                Click "Search & Apply" to start applying to jobs
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                jobsList.innerHTML = data.jobs.map(job => `
+                    <div class="job-item">
+                        <div class="job-title">${job.title || 'Job Title'}</div>
+                        <div class="job-company">${job.company || 'Company'}</div>
+                        <div class="job-meta">
+                            <span>📍 ${job.location || 'Location'}</span>
+                            <span>
+                                <span class="badge ${getStatusClass(job.status)}">
+                                    ${getStatusText(job.status)}
+                                </span>
+                            </span>
+                            <span>📅 ${formatDate(job.applied_at)}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+            }
+        }
+
+        function getStatusClass(status) {
+            if (status === 'success') return 'success';
+            if (status === 'pending') return 'pending';
+            return 'error';
+        }
+
+        function getStatusText(status) {
+            const statuses = {
+                'success': '✓ Applied',
+                'pending': '⏳ Pending',
+                'already_applied': '✓ Already Applied',
+                'external': '↗ External Link',
+                'failed': '✗ Failed'
+            };
+            return statuses[status] || status;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return 'Recently';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = `alert alert-${type}`;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+
+            if (type === 'success') {
+                setTimeout(() => { messageDiv.style.display = 'none'; }, 5000);
+            }
+        }
+
+        async function checkHealth() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+
+                const statusEl = document.getElementById('systemStatus');
+                const detailsEl = document.getElementById('statusDetails');
+
+                if (data.credentials_configured) {
+                    statusEl.textContent = '✓ Ready';
+                    statusEl.style.color = '#28a745';
+                    detailsEl.textContent = 'System configured and ready';
+                } else {
+                    statusEl.textContent = '⚠ Not Ready';
+                    statusEl.style.color = '#ffc107';
+                    detailsEl.textContent = 'Configure credentials in .env file';
+                }
+            } catch (error) {
+                console.error('Error checking health:', error);
+            }
+        }
+
+        // Refresh stats every 30 seconds
+        setInterval(loadStats, 30000);
+    </script>
+</body>
+</html>
