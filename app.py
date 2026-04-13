@@ -3,17 +3,32 @@ Minimal Web interface for Naukri Job Automation - Vercel Production
 Optimized for serverless with zero heavy imports at startup
 """
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import os
 import logging
 from datetime import datetime
+from pathlib import Path
 
 # Minimal setup - NO heavy imports here
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__, template_folder='templates', static_folder='static')
+# Determine the correct template directory for serverless
+app_dir = Path(__file__).parent
+template_dir = app_dir / 'templates'
+
+logger.info(f"App directory: {app_dir}")
+logger.info(f"Template directory: {template_dir}")
+logger.info(f"Template directory exists: {template_dir.exists()}")
+
+app = Flask(
+    __name__,
+    template_folder=str(template_dir),
+    static_folder=str(app_dir / 'static')
+)
 app.config['JSON_SORT_KEYS'] = False
+
+logger.info("Flask app initialized successfully")
 
 # Track if we've attempted orchestrator load
 _orchestrator = None
@@ -48,10 +63,71 @@ def safe_get_orchestrator():
 def index():
     """Serve the web UI"""
     try:
-        return render_template('index.html')
+        template_path = Path(__file__).parent / 'templates' / 'index.html'
+        if template_path.exists():
+            return render_template('index.html')
+        else:
+            logger.warning(f"Template not found at {template_path}")
     except Exception as e:
-        logger.error(f"Error rendering index: {e}")
-        return f"<html><body><h1>Naukri Job Automation</h1><p>Error loading UI: {str(e)[:50]}</p></body></html>", 500
+        logger.error(f"Error rendering template: {e}")
+    
+    # Fallback: return minimal HTML
+    return """<!DOCTYPE html>
+<html>
+<head>
+    <title>Naukri Job Automation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 800px; margin: 0 auto; text-align: center; }
+        h1 { font-size: 2em; margin: 40px 0 10px; }
+        p { font-size: 1.1em; margin: 10px 0; }
+        .status { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .loading { animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Naukri Job Automation</h1>
+        <p>Intelligent job search and application system</p>
+        <div class="status">
+            <p>Checking system health...</p>
+            <div id="status" style="font-size: 2em; margin-top: 10px; display:inline-block;" class="loading">⏳</div>
+        </div>
+    </div>
+    <script>
+        async function checkHealth() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                const status = document.getElementById('status');
+                if (data.status === 'operational') {
+                    status.innerHTML = '✅ System Ready';
+                    status.className = '';
+                    status.style.color = '#90EE90';
+                    setTimeout(() => { location.reload(); }, 1000);
+                } else {
+                    status.innerHTML = '⏳ Initializing...';
+                    setTimeout(checkHealth, 3000);
+                }
+            } catch (e) {
+                console.error('Health check failed:', e);
+                setTimeout(checkHealth, 3000);
+            }
+        }
+        checkHealth();
+    </script>
+</body>
+</html>""", 200
 
 
 @app.route('/api/health', methods=['GET'])
