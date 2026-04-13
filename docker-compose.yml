@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  naukri-automation:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - NAUKRI_EMAIL=${NAUKRI_EMAIL}
+      - NAUKRI_PASSWORD=${NAUKRI_PASSWORD}
+      - FLASK_ENV=production
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # Optional: PostgreSQL for advanced storage (not required for basic setup)
+  # db:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     - POSTGRES_USER=naukri
+  #     - POSTGRES_PASSWORD=naukri
+  #     - POSTGRES_DB=naukri_jobs
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U naukri"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+# volumes:
+#   postgres_data:
