@@ -43,6 +43,9 @@ deploy = [
     "gunicorn>=20.1.0",
 ]
 
+[project.scripts]
+app = "app:app"
+
 [project.urls]
 HomePage = "https://github.com/SAGAYARAJ0/naukri-job-automation"
 Repository = "https://github.com/SAGAYARAJ0/naukri-job-automation.git"

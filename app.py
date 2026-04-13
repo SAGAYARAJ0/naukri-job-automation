@@ -164,5 +164,7 @@ def health_check():
 
 
 if __name__ == '__main__':
-    logger.info("Starting Naukri Automation Web UI on http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('FLASK_ENV', 'production') == 'development'
+    logger.info(f"Starting Naukri Automation Web UI on http://localhost:{port}")
+    app.run(debug=debug, host='0.0.0.0', port=port)
