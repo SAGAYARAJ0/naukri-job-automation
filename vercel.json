@@ -5,7 +5,6 @@
     "PYTHONUNBUFFERED": "1",
     "PYTHONDONTWRITEBYTECODE": "1"
   },
-  "runtime": "python3.11",
   "routes": [
     {
       "src": "/(.*)",
