@@ -1,0 +1,36 @@
+{
+    "required_skills": [
+        "Python",
+        "JavaScript",
+        "SQL",
+        "REST API"
+    ],
+    "nice_to_have_skills": [
+        "Docker",
+        "Kubernetes",
+        "AWS",
+        "Git",
+        "Linux"
+    ],
+    "red_flags": [
+        "unpaid",
+        "internship only",
+        "contract basis only",
+        "low experience",
+        "remote not allowed"
+    ],
+    "min_experience": 1,
+    "max_experience": 10,
+    "preferred_locations": [
+        "Bangalore",
+        "Mumbai",
+        "Delhi",
+        "Hyderabad"
+    ],
+    "preferred_salary_range": [
+        500000,
+        2000000
+    ],
+    "filter_threshold": 70,
+    "strict_mode": false
+}
