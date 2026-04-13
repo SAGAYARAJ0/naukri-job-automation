@@ -1,52 +1,215 @@
 """
-Web interface for Naukri Job Automation System
-Flask-based UI for searching and applying to jobs
+Web interface for Naukri Job Automation System - Vercel-optimized version
+Lightweight Flask app for serverless deployment
 """
 
 from flask import Flask, render_template, request, jsonify
 import os
 import sys
+import logging
 from pathlib import Path
 
-# Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent))
-
-from main import Orchestrator
-from core import get_logger
-from utils.helpers import get_helpers
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-logger = get_logger(__name__)
-helpers = get_helpers()
 
 # Load environment variables
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
+    logger.warning("python-dotenv not installed, using environment variables only")
     pass
+
+# Global state
+orchestrator = None
+initialized = False
+
+def get_orchestrator():
+    """Lazy initialization of Orchestrator"""
+    global orchestrator, initialized
+    
+    if initialized:
+        return orchestrator
+    
+    try:
+        # Add current directory to path
+        sys.path.insert(0, str(Path(__file__).parent))
+        
+        from main import Orchestrator
+        
+        orchestrator = Orchestrator()
+        initialized = True
+        logger.info("Orchestrator initialized successfully")
+        return orchestrator
+        
+    except Exception as e:
+        logger.error(f"Failed to initialize Orchestrator: {str(e)}")
+        initialized = True  # Mark as initialized to avoid repeated attempts
+        return None
 
 
 @app.route('/')
 def index():
     """Home page with search form"""
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        logger.error(f"Error loading index: {str(e)}")
+        return jsonify({"error": "Failed to load UI"}), 500
+
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    try:
+        orch = get_orchestrator()
+        status = "operational" if orch else "degraded"
+        return jsonify({
+            "status": status,
+            "message": "Naukri Automation Service" if orch else "Service starting up",
+            "timestamp": __import__('datetime').datetime.now().isoformat()
+        }), 200
+    except Exception as e:
+        logger.error(f"Health check error: {str(e)}")
+        return jsonify({"status": "error", "error": str(e)}), 500
 
 
 @app.route('/api/search', methods=['POST'])
 def search_jobs():
     """API endpoint for job search"""
     try:
-        data = request.json
+        data = request.json or {}
         
-        keywords = data.get('keywords', ['Python']).split(',')
-        keywords = [k.strip() for k in keywords if k.strip()]
+        keywords = data.get('keywords', 'Python')
+        if isinstance(keywords, str):
+            keywords = [k.strip() for k in keywords.split(',') if k.strip()]
         
         location = data.get('location', 'Bangalore')
         experience = int(data.get('experience', 3))
-        freshness = data.get('freshness', '7')  # days
+        freshness = data.get('freshness', '7')
         
         logger.info(f"Search request: {keywords}, {location}, {experience}yrs, within {freshness} days")
+        
+        # Try to get orchestrator
+        orch = get_orchestrator()
+        
+        if not orch:
+            return jsonify({
+                "status": "pending",
+                "message": "Service initializing. Please try again in a moment.",
+                "jobs": [],
+                "total": 0
+            }), 202  # Accepted but processing
+        
+        # Execute search
+        results = orch.search_and_apply(
+            keywords=keywords,
+            location=location,
+            experience_years=experience,
+            max_applications=5  # Limit for serverless
+        )
+        
+        return jsonify({
+            "status": "success",
+            "keywords": keywords,
+            "location": location,
+            "experience": experience,
+            "jobs": results.get('jobs', []),
+            "total": results.get('total', 0),
+            "applied": results.get('applied', 0)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Search error: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "message": "Search failed. Check logs for details."
+        }), 500
+
+
+@app.route('/api/jobs', methods=['GET'])
+def get_jobs():
+    """Get application history"""
+    try:
+        orch = get_orchestrator()
+        
+        if not orch:
+            return jsonify({
+                "status": "pending",
+                "message": "Service initializing",
+                "jobs": []
+            }), 202
+        
+        jobs = orch.get_applications()
+        
+        return jsonify({
+            "status": "success",
+            "jobs": jobs if jobs else [],
+            "total": len(jobs) if jobs else 0
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Get jobs error: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "jobs": []
+        }), 500
+
+
+@app.route('/api/stats', methods=['GET'])
+def get_stats():
+    """Get statistics"""
+    try:
+        orch = get_orchestrator()
+        
+        if not orch:
+            return jsonify({
+                "status": "pending",
+                "total_applications": 0,
+                "successful": 0,
+                "failed": 0,
+                "pending": 0
+            }), 202
+        
+        stats = orch.get_statistics()
+        
+        return jsonify({
+            "status": "success",
+            **stats
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Stats error: {str(e)}")
+        return jsonify({
+            "status": "error",
+            "error": str(e)
+        }), 500
+
+
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors"""
+    return jsonify({"error": "Not found", "status": 404}), 404
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle 500 errors"""
+    logger.error(f"Internal server error: {str(error)}")
+    return jsonify({"error": "Internal server error", "status": 500}), 500
+
+
+if __name__ == '__main__':
+    # Local development
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('FLASK_ENV', 'production') == 'development'
+    logger.info(f"Starting on port {port} (debug={debug})")
+    app.run(debug=debug, host='0.0.0.0', port=port)
         
         # Initialize orchestrator
         orchestrator = Orchestrator()
